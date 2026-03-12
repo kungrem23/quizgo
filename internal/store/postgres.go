@@ -11,15 +11,15 @@ import (
 )
 
 const (
-	host   = "localhost"
+	pgHost = "localhost"
 	port   = "5432"
 	user   = "danilmitrosin"
 	dbname = "quizgo"
 )
 
-func Connect() *sql.DB {
+func ConnectPG() *sql.DB {
 	pgCfg := fmt.Sprintf("host=%s port=%s user=%s dbname=%s"+
-		" sslmode=disable", host, port, user, dbname)
+		" sslmode=disable", pgHost, port, user, dbname)
 	// log.Println("Connecting to PG...")
 	db, err := sql.Open("postgres", pgCfg)
 	if err != nil {
@@ -49,7 +49,7 @@ func ApplyMigrations(db *sql.DB) {
 }
 
 func NewDBConnection() *sql.DB {
-	db := Connect()
+	db := ConnectPG()
 	ApplyMigrations(db)
 	return db
 }

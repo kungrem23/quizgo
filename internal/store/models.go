@@ -11,7 +11,7 @@ func NewQuiz() *Quiz {
 }
 
 type Game struct {
-	Id        int
+	Id        string
 	Code      string
 	IsStarted bool
 	QuizId    int
@@ -61,4 +61,11 @@ type Answer struct {
 
 func NewAnswer() *Answer {
 	return &Answer{}
+}
+
+type Player struct {
+	Id       string  `json:"id"`
+	Username string  `json:"username"`
+	Score    float32 `json:"score"`
+	GameId   string  `json:"game_id"`
 }

@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS quizzes (
 );
 
 CREATE TABLE IF NOT EXISTS games (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(40) PRIMARY KEY,
     code VARCHAR(10) NOT NULL UNIQUE,
     is_started BOOLEAN DEFAULT FALSE,
     quiz_id INT,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS questions(
 );
 
 CREATE TABLE IF NOT EXISTS answers(
-    id SERIAL PRIMARY KEY
+    id SERIAL PRIMARY KEY,
     text_content VARCHAR(200) NOT NULL,
     is_correct BOOLEAN,
     quiz_id INT,

@@ -18,22 +18,31 @@ func main() {
 	// }
 	db := store.NewDBConnection()
 	defer db.Close()
-	quizRepo := repos.NewQuizRepo(db)
-	gameRepo := repos.NewGameRepo(db)
-	userRepo := repos.NewUserRepo(db)
-	user, err := userRepo.CreateNewUser("testUsername4", "12345678")
+	rdb, _ := store.NewRedisConnection()
+	defer rdb.Close()
+
+	// quizRepo := repos.NewQuizRepo(db)
+	// userRepo := repos.NewUserRepo(db)
+	// gameRepo := repos.NewGameRepo(db)
+	// user, err := userRepo.CreateNewUser("testUsername1", "12345678")
+	// if err != nil {
+	// 	return
+	// }
+	// quiz, err := quizRepo.CreateNewQuiz("test1", user.Id)
+	// if err != nil {
+	// 	return
+	// }
+	// game, err := gameRepo.CreateNewGame("qwerty1", quiz.Id)
+	// if err != nil {
+	// 	return
+	// }
+	// fmt.Printf("%v\n", user)
+	// fmt.Printf("%v\n", quiz)
+	// fmt.Printf("%v\n", game)
+	playerRepo := repos.NewPlayerRepo(rdb)
+	player, err := playerRepo.CreateNewPlayer("player2", "15f3e717-0593-4c76-bb46-1d9050b58b01")
 	if err != nil {
 		return
 	}
-	quiz, err := quizRepo.CreateNewQuiz("test2", user.Id)
-	if err != nil {
-		return
-	}
-	game, err := gameRepo.CreateNewGame("qwerty2", quiz.Id)
-	if err != nil {
-		return
-	}
-	fmt.Printf("%v\n", user)
-	fmt.Printf("%v\n", quiz)
-	fmt.Printf("%v\n", game)
+	fmt.Printf("%v\n", player)
 }
