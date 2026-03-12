@@ -25,7 +25,41 @@ func (r *UserRepo) CreateNewUser(username string, passwordHash string) (*store.U
 	user := store.NewUser()
 	err := row.Scan(&user.Id, &user.Username, &user.PasswordHash)
 	if err != nil {
-		log.Printf("Adding user error: %v", err)
+		log.Printf("Adding user error: %v\n", err)
+		return nil, err
+	}
+	return user, nil
+}
+
+func (r *UserRepo) GetAllUsers() ([]*store.User, error) {
+	query := `SELECT id, username, password_hash FROM users`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		log.Printf("Selecting all users error: %v\n", err)
+		return nil, err
+	}
+	var users []*store.User
+	defer rows.Close()
+	for rows.Next() {
+		user := store.NewUser()
+		err := rows.Scan(&user.Id, &user.Username, &user.PasswordHash)
+		if err != nil {
+			log.Printf("Scanning user error: %v\n", err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
+func (r *UserRepo) GetUserById(id int) (*store.User, error) {
+	query := `SELECT (id, username, password_hash) FROM users
+	WHERE id = $1`
+	row := r.db.QueryRow(query, id)
+	user := store.NewUser()
+	err := row.Scan(&user.Id, &user.Username, &user.PasswordHash)
+	if err != nil {
+		log.Printf("Selecting user(id=%v) error: %v\n", id, err)
 		return nil, err
 	}
 	return user, nil
@@ -35,7 +69,7 @@ func (r *UserRepo) Deleteuser(id int) error {
 	query := "DELETE FROM users WHERE id = $1;"
 	_, err := r.db.Exec(query, id)
 	if err != nil {
-		log.Printf("Deleting user error: %v", err)
+		log.Printf("Deleting user error: %v\n", err)
 		return err
 	}
 	return nil

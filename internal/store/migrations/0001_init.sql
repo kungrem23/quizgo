@@ -38,6 +38,6 @@ CREATE TABLE IF NOT EXISTS answers(
     id SERIAL PRIMARY KEY,
     text_content VARCHAR(200) NOT NULL,
     is_correct BOOLEAN,
-    quiz_id INT,
-    FOREIGN KEY(quiz_id) REFERENCES questions(id)
+    question_id INT,
+    FOREIGN KEY(question_id) REFERENCES questions(id)
 );

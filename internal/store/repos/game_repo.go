@@ -57,3 +57,15 @@ func (r *GameRepo) ChangeGameState(id string, isStarted bool) (*store.Game, erro
 	}
 	return game, nil
 }
+
+func (r *GameRepo) GetGameById(id string) (*store.Game, error) {
+
+}
+
+func (r *GameRepo) GetAllGames() ([]*store.Game, error) {
+
+}
+
+func (r *GameRepo) GetGamesByQuizId(quizId int) ([]*store.Game, error) {
+
+}

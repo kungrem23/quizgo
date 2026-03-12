@@ -38,3 +38,11 @@ func (r *ImageRepo) DeleteImage(id int) error {
 	}
 	return nil
 }
+
+func (r *ImageRepo) GetImageById(id int) (*store.Image, error) {
+
+}
+
+func (r *ImageRepo) GetAllImages() ([]*store.Image, error) {
+
+}

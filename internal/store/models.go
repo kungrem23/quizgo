@@ -56,7 +56,7 @@ type Answer struct {
 	Id          int
 	TextContent string
 	IsCorrect   bool
-	QuizId      int
+	QuestionId  int
 }
 
 func NewAnswer() *Answer {

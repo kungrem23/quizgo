@@ -38,3 +38,15 @@ func (r *AnswerRepo) DeleteAnswer(id int) error {
 	}
 	return nil
 }
+
+func (r *AnswerRepo) GetAnswerById(id int) (*store.Answer, error) {
+
+}
+
+func (r *AnswerRepo) GetAllAnswers() ([]*store.Answer, error) {
+
+}
+
+func (r *AnswerRepo) GetAnswersByQuestionId(questionId int) ([]*store.Answer, error) {
+
+}

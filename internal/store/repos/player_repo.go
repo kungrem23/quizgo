@@ -26,7 +26,7 @@ func (r *PlayerRepo) CreateNewPlayer(username string, gameId string) (*store.Pla
 		return nil, err
 	}
 	if exists == 0 {
-		r.rdb.RPush(ctx, gameId, "").Err()
+		err = r.rdb.RPush(ctx, gameId, "").Err()
 		if err != nil {
 			log.Printf("Pushing new game list(id=%v) error: %v\n", gameId, err)
 			return nil, err

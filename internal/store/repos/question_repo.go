@@ -78,3 +78,15 @@ func (r *QuestionRepo) ChangeQuestionPosition(id int, new_position int) (*store.
 	}
 	return question, nil
 }
+
+func (r *QuestionRepo) GetQuestionById(id int) (*store.Question, error) {
+
+}
+
+func (r *QuestionRepo) GetAllQuestions() ([]*store.Question, error) {
+
+}
+
+func (r *QuestionRepo) GetQuestionsByQuizId() ([]*store.Question, error) {
+
+}
