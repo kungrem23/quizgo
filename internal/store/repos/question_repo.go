@@ -79,14 +79,58 @@ func (r *QuestionRepo) ChangeQuestionPosition(id int, new_position int) (*store.
 	return question, nil
 }
 
-// func (r *QuestionRepo) GetQuestionById(id int) (*store.Question, error) {
+func (r *QuestionRepo) GetQuestionById(id int) (*store.Question, error) {
+	query := `SELECT id, text_content, position, image_id, quiz_id FROM questions
+	WHERE id=$1`
+	row := r.db.QueryRow(query, id)
+	question := store.NewQuestion()
+	err := row.Scan(&question.Id, &question.TextContent, &question.Position, &question.ImageId, &question.QuizId)
+	if err != nil {
+		log.Printf("Scanning question(id=%v) error: %v", id, err)
+		return nil, err
+	}
+	return question, nil
+}
 
-// }
+func (r *QuestionRepo) GetAllQuestions() ([]*store.Question, error) {
+	query := `SELECT id, text_content, position, image_id, quiz_id FROM questions`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		log.Printf("Get questions error: %v", err)
+		return nil, err
+	}
+	var questions []*store.Question
+	defer rows.Close()
+	for rows.Next() {
+		question := store.NewQuestion()
+		err := rows.Scan(&question.Id, &question.TextContent, &question.Position, &question.ImageId, &question.QuizId)
+		if err != nil {
+			log.Printf("Scanning question error: %v", err)
+			return nil, err
+		}
+		questions = append(questions, question)
+	}
+	return questions, nil
+}
 
-// func (r *QuestionRepo) GetAllQuestions() ([]*store.Question, error) {
-
-// }
-
-// func (r *QuestionRepo) GetQuestionsByQuizId() ([]*store.Question, error) {
-
-// }
+func (r *QuestionRepo) GetQuestionsByQuizId(quiz_id int) ([]*store.Question, error) {
+	query := `SELECT id, text_content, position, image_id, quiz_id FROM questions
+	WHERE quiz_id=$1`
+	rows, err := r.db.Query(query, quiz_id)
+	if err != nil {
+		log.Printf("Get questions error: %v", err)
+		return nil, err
+	}
+	var questions []*store.Question
+	defer rows.Close()
+	for rows.Next() {
+		question := store.NewQuestion()
+		err := rows.Scan(&question.Id, &question.TextContent, &question.Position, &question.ImageId, &question.QuizId)
+		if err != nil {
+			log.Printf("Scanning question error: %v", err)
+			return nil, err
+		}
+		questions = append(questions, question)
+	}
+	return questions, nil
+}
