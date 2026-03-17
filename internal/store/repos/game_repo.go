@@ -58,14 +58,57 @@ func (r *GameRepo) ChangeGameState(id string, isStarted bool) (*store.Game, erro
 	return game, nil
 }
 
-// func (r *GameRepo) GetGameById(id string) (*store.Game, error) {
+func (r *GameRepo) GetGameById(id string) (*store.Game, error) {
+	query := `SELECT id, code, is_started, quiz_id FROM games WHERE id=$1`
+	row := r.db.QueryRow(query, id)
+	game := store.NewGame()
+	err := row.Scan(&game.Id, &game.Code, &game.IsStarted, &game.QuizId)
+	if err != nil {
+		log.Printf("Scanning game(id=%v) error: %v", id, err)
+		return nil, err
+	}
+	return game, nil
+}
 
-// }
+func (r *GameRepo) GetAllGames() ([]*store.Game, error) {
+	query := `SELECT id, code, is_started, quiz_id FROM games`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		log.Printf("Get games error: %v", err)
+		return nil, err
+	}
+	var games []*store.Game
+	defer rows.Close()
+	for rows.Next() {
+		game := store.NewGame()
+		err := rows.Scan(&game.Id, &game.Code, &game.IsStarted, &game.QuizId)
+		if err != nil {
+			log.Printf("Scanning game error: %v", err)
+			return nil, err
+		}
+		games = append(games, game)
+	}
+	return games, nil
+}
 
-// func (r *GameRepo) GetAllGames() ([]*store.Game, error) {
-
-// }
-
-// func (r *GameRepo) GetGamesByQuizId(quizId int) ([]*store.Game, error) {
-
-// }
+func (r *GameRepo) GetGamesByQuizId(quizId int) ([]*store.Game, error) {
+	query := `SELECT id, code, is_started, quiz_id FROM games
+	WHERE question_id=$1`
+	rows, err := r.db.Query(query, quizId)
+	if err != nil {
+		log.Printf("Get games error: %v", err)
+		return nil, err
+	}
+	var games []*store.Game
+	defer rows.Close()
+	for rows.Next() {
+		game := store.NewGame()
+		err := rows.Scan(&game.Id, &game.Code, &game.IsStarted, &game.QuizId)
+		if err != nil {
+			log.Printf("Scanning game error: %v", err)
+			return nil, err
+		}
+		games = append(games, game)
+	}
+	return games, nil
+}
