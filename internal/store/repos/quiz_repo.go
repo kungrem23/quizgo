@@ -40,14 +40,14 @@ func (r *QuizRepo) DeleteQuiz(id int) error {
 	return nil
 }
 
-func (r *QuizRepo) GetQuizById(id int) (*store.Quiz, error) {
+// func (r *QuizRepo) GetQuizById(id int) (*store.Quiz, error) {
 
-}
+// }
 
-func (r *QuizRepo) GetQuizzesByAuthorId(authorId int) ([]*store.Quiz, error) {
+// func (r *QuizRepo) GetQuizzesByAuthorId(authorId int) ([]*store.Quiz, error) {
 
-}
+// }
 
-func (r *QuizRepo) GetAllQuizzes() ([]*store.Quiz, error) {
+// func (r *QuizRepo) GetAllQuizzes() ([]*store.Quiz, error) {
 
-}
+// }

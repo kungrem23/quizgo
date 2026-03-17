@@ -6,7 +6,9 @@ import (
 	// "net/http"
 	"fmt"
 	store "github.com/kungrem23/quizgo/internal/store"
+	redis "github.com/kungrem23/quizgo/internal/store/redis"
 	repos "github.com/kungrem23/quizgo/internal/store/repos"
+	s3 "github.com/kungrem23/quizgo/internal/store/s3"
 )
 
 func main() {
@@ -18,8 +20,10 @@ func main() {
 	// }
 	db := store.NewDBConnection()
 	defer db.Close()
-	rdb, _ := store.NewRedisConnection()
+	rdb, _ := redis.NewRedisConnection()
 	defer rdb.Close()
+	s3Client, _ := s3.NewS3Connection()
+	fmt.Printf("%v", s3Client)
 
 	// quizRepo := repos.NewQuizRepo(db)
 	// userRepo := repos.NewUserRepo(db)

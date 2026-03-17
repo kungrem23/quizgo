@@ -40,9 +40,17 @@ func (r *ImageRepo) DeleteImage(id int) error {
 }
 
 func (r *ImageRepo) GetImageById(id int) (*store.Image, error) {
-
+	query := `SELECT id, image_url FROM images WHERE id=$1`
+	row := r.db.QueryRow(query, id)
+	image := store.NewImage()
+	err := row.Scan(&image.Id, &image.ImageURL)
+	if err != nil {
+		log.Printf("Get image(id=%v) error: %v", id, err)
+		return nil, err
+	}
+	return image, nil
 }
 
-func (r *ImageRepo) GetAllImages() ([]*store.Image, error) {
+// func (r *ImageRepo) GetAllImages() ([]*store.Image, error) {
 
-}
+// }
