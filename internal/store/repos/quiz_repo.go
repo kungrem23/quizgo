@@ -3,7 +3,7 @@ package repos
 import (
 	"database/sql"
 	// "fmt"
-	store "github.com/kungrem23/quizgo/internal/store"
+	"github.com/kungrem23/quizgo/internal/store/models"
 	"log"
 )
 
@@ -15,14 +15,14 @@ func NewQuizRepo(db *sql.DB) *QuizRepo {
 	return &QuizRepo{db: db}
 }
 
-func (r *QuizRepo) CreateNewQuiz(name string, authorId int) (*store.Quiz, error) {
+func (r *QuizRepo) CreateNewQuiz(title string, authorId int) (*models.Quiz, error) {
 	query := `INSERT INTO quizzes 
-	(name, author_id)
+	(title, author_id)
 	VALUES ($1, $2)
-	RETURNING id, name, author_id;`
-	row := r.db.QueryRow(query, name, authorId)
-	quiz := store.NewQuiz()
-	err := row.Scan(&quiz.Id, &quiz.Name, &quiz.AuthorId)
+	RETURNING id, title, author_id;`
+	row := r.db.QueryRow(query, title, authorId)
+	quiz := models.NewQuiz()
+	err := row.Scan(&quiz.Id, &quiz.Title, &quiz.AuthorId)
 	if err != nil {
 		log.Printf("Adding quiz error: %v\n", err)
 		return nil, err
@@ -40,11 +40,11 @@ func (r *QuizRepo) DeleteQuiz(id int) error {
 	return nil
 }
 
-func (r *QuizRepo) GetQuizById(id int) (*store.Quiz, error) {
-	query := `SELECT id, name, author_id FROM quizzes WHERE id=$1`
+func (r *QuizRepo) GetQuizById(id int) (*models.Quiz, error) {
+	query := `SELECT id, title, author_id FROM quizzes WHERE id=$1`
 	row := r.db.QueryRow(query, id)
-	quiz := store.NewQuiz()
-	err := row.Scan(&quiz.Id, &quiz.Name, &quiz.AuthorId)
+	quiz := models.NewQuiz()
+	err := row.Scan(&quiz.Id, &quiz.Title, &quiz.AuthorId)
 	if err != nil {
 		log.Printf("Scanning quiz(id=%v) error: %v", id, err)
 		return nil, err
@@ -52,18 +52,18 @@ func (r *QuizRepo) GetQuizById(id int) (*store.Quiz, error) {
 	return quiz, nil
 }
 
-func (r *QuizRepo) GetQuizzesByAuthorId(authorId int) ([]*store.Quiz, error) {
-	query := `SELECT id, name, author_id FROM quizzes WHERE author_id=$1`
+func (r *QuizRepo) GetQuizzesByAuthorId(authorId int) ([]*models.Quiz, error) {
+	query := `SELECT id, title, author_id FROM quizzes WHERE author_id=$1`
 	rows, err := r.db.Query(query, authorId)
 	if err != nil {
 		log.Printf("Get quizzes error: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
-	var quizzes []*store.Quiz
+	var quizzes []*models.Quiz
 	for rows.Next() {
-		quiz := store.NewQuiz()
-		err = rows.Scan(&quiz.Id, &quiz.Name, &quiz.AuthorId)
+		quiz := models.NewQuiz()
+		err = rows.Scan(&quiz.Id, &quiz.Title, &quiz.AuthorId)
 		if err != nil {
 			log.Printf("Scanning quiz error: %v", err)
 			return nil, err
@@ -73,18 +73,18 @@ func (r *QuizRepo) GetQuizzesByAuthorId(authorId int) ([]*store.Quiz, error) {
 	return quizzes, nil
 }
 
-func (r *QuizRepo) GetAllQuizzes() ([]*store.Quiz, error) {
-	query := `SELECT id, name, author_id FROM quizzes`
+func (r *QuizRepo) GetAllQuizzes() ([]*models.Quiz, error) {
+	query := `SELECT id, title, author_id FROM quizzes`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		log.Printf("Get quizzes error: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
-	var quizzes []*store.Quiz
+	var quizzes []*models.Quiz
 	for rows.Next() {
-		quiz := store.NewQuiz()
-		err = rows.Scan(&quiz.Id, &quiz.Name, &quiz.AuthorId)
+		quiz := models.NewQuiz()
+		err = rows.Scan(&quiz.Id, &quiz.Title, &quiz.AuthorId)
 		if err != nil {
 			log.Printf("Scanning quiz error: %v", err)
 			return nil, err

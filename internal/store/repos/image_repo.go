@@ -2,7 +2,7 @@ package repos
 
 import (
 	"database/sql"
-	store "github.com/kungrem23/quizgo/internal/store"
+	"github.com/kungrem23/quizgo/internal/store/models"
 	"log"
 )
 
@@ -14,13 +14,13 @@ func NewImageRepo(db *sql.DB) *ImageRepo {
 	return &ImageRepo{db: db}
 }
 
-func (r *ImageRepo) CreateNewImage(imageURL string) (*store.Image, error) {
+func (r *ImageRepo) CreateNewImage(imageURL string) (*models.Image, error) {
 	query := `INSERT INTO images
 	(image_url)
 	VALUES ($1)
 	RETURNING id, image_url;`
 	row := r.db.QueryRow(query, imageURL)
-	image := store.NewImage()
+	image := models.NewImage()
 	err := row.Scan(&image.Id, &image.ImageURL)
 	if err != nil {
 		log.Printf("Adding Image error: %v\n", err)
@@ -39,10 +39,10 @@ func (r *ImageRepo) DeleteImage(id int) error {
 	return nil
 }
 
-func (r *ImageRepo) GetImageById(id int) (*store.Image, error) {
+func (r *ImageRepo) GetImageById(id int) (*models.Image, error) {
 	query := `SELECT id, image_url FROM images WHERE id=$1`
 	row := r.db.QueryRow(query, id)
-	image := store.NewImage()
+	image := models.NewImage()
 	err := row.Scan(&image.Id, &image.ImageURL)
 	if err != nil {
 		log.Printf("Get image(id=%v) error: %v", id, err)

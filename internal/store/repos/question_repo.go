@@ -2,7 +2,7 @@ package repos
 
 import (
 	"database/sql"
-	store "github.com/kungrem23/quizgo/internal/store"
+	"github.com/kungrem23/quizgo/internal/store/models"
 	"log"
 )
 
@@ -14,11 +14,11 @@ func NewQuestionRepo(db *sql.DB) *QuestionRepo {
 	return &QuestionRepo{db: db}
 }
 
-func (r *QuestionRepo) CreateNewQuestion(textContent string, imageId string, quiz_id int) (*store.Question, error) {
+func (r *QuestionRepo) CreateNewQuestion(textContent string, imageId string, quizId int) (*models.Question, error) {
 	queryMax := `SELECT COALESCE(MAX(position), 0) + 1
 	FROM questions
 	WHERE quiz_id = $1;`
-	row := r.db.QueryRow(queryMax, quiz_id)
+	row := r.db.QueryRow(queryMax, quizId)
 	var position int
 	err := row.Scan(&position)
 	if err != nil {
@@ -29,8 +29,12 @@ func (r *QuestionRepo) CreateNewQuestion(textContent string, imageId string, qui
 	(text_content, position, quiz_id, image_id)
 	VALUES ($1, $2, $3, $4)
 	RETURNING id, position, text_content, quiz_id, image_id;`
-	question := store.NewQuestion()
-	row = r.db.QueryRow(query)
+	question := models.NewQuestion()
+	if imageId != "" {
+		row = r.db.QueryRow(query, textContent, position, quizId, imageId)
+	} else {
+		row = r.db.QueryRow(query, textContent, position, quizId, nil)
+	}
 	err = row.Scan(&question.Id, &question.Position, &question.TextContent, &question.QuizId, &question.ImageId)
 	if err != nil {
 		log.Printf("Adding question error: %v", err)
@@ -56,7 +60,7 @@ func (r *QuestionRepo) DeleteQuestion(id int) error {
 	}
 	return nil
 }
-func (r *QuestionRepo) ChangeQuestionPosition(id int, new_position int) (*store.Question, error) {
+func (r *QuestionRepo) ChangeQuestionPosition(id int, new_position int) (*models.Question, error) {
 	query := `UPDATE questions
 	SET position = position + 1
 	WHERE position > $1;`
@@ -69,7 +73,7 @@ func (r *QuestionRepo) ChangeQuestionPosition(id int, new_position int) (*store.
 	SET position = $1
 	WHERE id = $2
 	RETURNING id, text_content, position, quiz_id, image_id`
-	question := store.NewQuestion()
+	question := models.NewQuestion()
 	row := r.db.QueryRow(query, new_position, id)
 	err = row.Scan(&question.Id, &question.TextContent, &question.Position, &question.QuizId, &question.ImageId)
 	if err != nil {
@@ -79,11 +83,11 @@ func (r *QuestionRepo) ChangeQuestionPosition(id int, new_position int) (*store.
 	return question, nil
 }
 
-func (r *QuestionRepo) GetQuestionById(id int) (*store.Question, error) {
+func (r *QuestionRepo) GetQuestionById(id int) (*models.Question, error) {
 	query := `SELECT id, text_content, position, image_id, quiz_id FROM questions
 	WHERE id=$1`
 	row := r.db.QueryRow(query, id)
-	question := store.NewQuestion()
+	question := models.NewQuestion()
 	err := row.Scan(&question.Id, &question.TextContent, &question.Position, &question.ImageId, &question.QuizId)
 	if err != nil {
 		log.Printf("Scanning question(id=%v) error: %v", id, err)
@@ -92,17 +96,17 @@ func (r *QuestionRepo) GetQuestionById(id int) (*store.Question, error) {
 	return question, nil
 }
 
-func (r *QuestionRepo) GetAllQuestions() ([]*store.Question, error) {
+func (r *QuestionRepo) GetAllQuestions() ([]*models.Question, error) {
 	query := `SELECT id, text_content, position, image_id, quiz_id FROM questions`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		log.Printf("Get questions error: %v", err)
 		return nil, err
 	}
-	var questions []*store.Question
+	var questions []*models.Question
 	defer rows.Close()
 	for rows.Next() {
-		question := store.NewQuestion()
+		question := models.NewQuestion()
 		err := rows.Scan(&question.Id, &question.TextContent, &question.Position, &question.ImageId, &question.QuizId)
 		if err != nil {
 			log.Printf("Scanning question error: %v", err)
@@ -113,7 +117,7 @@ func (r *QuestionRepo) GetAllQuestions() ([]*store.Question, error) {
 	return questions, nil
 }
 
-func (r *QuestionRepo) GetQuestionsByQuizId(quiz_id int) ([]*store.Question, error) {
+func (r *QuestionRepo) GetQuestionsByQuizId(quiz_id int) ([]*models.Question, error) {
 	query := `SELECT id, text_content, position, image_id, quiz_id FROM questions
 	WHERE quiz_id=$1`
 	rows, err := r.db.Query(query, quiz_id)
@@ -121,10 +125,10 @@ func (r *QuestionRepo) GetQuestionsByQuizId(quiz_id int) ([]*store.Question, err
 		log.Printf("Get questions error: %v", err)
 		return nil, err
 	}
-	var questions []*store.Question
+	var questions []*models.Question
 	defer rows.Close()
 	for rows.Next() {
-		question := store.NewQuestion()
+		question := models.NewQuestion()
 		err := rows.Scan(&question.Id, &question.TextContent, &question.Position, &question.ImageId, &question.QuizId)
 		if err != nil {
 			log.Printf("Scanning question error: %v", err)

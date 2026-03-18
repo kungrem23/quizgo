@@ -1,8 +1,10 @@
-package store
+package models
+
+import "database/sql"
 
 type Quiz struct {
 	Id       int
-	Name     string
+	Title    string
 	AuthorId int
 }
 
@@ -36,7 +38,7 @@ type Question struct {
 	QuizId      int
 	Position    int
 	TextContent string
-	ImageId     int
+	ImageId     sql.NullString
 }
 
 func NewQuestion() *Question {

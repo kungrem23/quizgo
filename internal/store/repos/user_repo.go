@@ -5,7 +5,7 @@ import (
 	// "fmt"
 	"log"
 
-	store "github.com/kungrem23/quizgo/internal/store"
+	"github.com/kungrem23/quizgo/internal/store/models"
 )
 
 type UserRepo struct {
@@ -16,13 +16,13 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 	return &UserRepo{db: db}
 }
 
-func (r *UserRepo) CreateNewUser(username string, passwordHash string) (*store.User, error) {
+func (r *UserRepo) CreateNewUser(username string, passwordHash string) (*models.User, error) {
 	query := `INSERT INTO users
 	(username, password_hash)
 	VALUES ($1, $2)
 	RETURNING id, username, password_hash;`
 	row := r.db.QueryRow(query, username, passwordHash)
-	user := store.NewUser()
+	user := models.NewUser()
 	err := row.Scan(&user.Id, &user.Username, &user.PasswordHash)
 	if err != nil {
 		log.Printf("Adding user error: %v\n", err)
@@ -31,17 +31,17 @@ func (r *UserRepo) CreateNewUser(username string, passwordHash string) (*store.U
 	return user, nil
 }
 
-func (r *UserRepo) GetAllUsers() ([]*store.User, error) {
+func (r *UserRepo) GetAllUsers() ([]*models.User, error) {
 	query := `SELECT id, username, password_hash FROM users`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		log.Printf("Selecting all users error: %v\n", err)
 		return nil, err
 	}
-	var users []*store.User
+	var users []*models.User
 	defer rows.Close()
 	for rows.Next() {
-		user := store.NewUser()
+		user := models.NewUser()
 		err := rows.Scan(&user.Id, &user.Username, &user.PasswordHash)
 		if err != nil {
 			log.Printf("Scanning user error: %v\n", err)
@@ -52,11 +52,11 @@ func (r *UserRepo) GetAllUsers() ([]*store.User, error) {
 	return users, nil
 }
 
-func (r *UserRepo) GetUserById(id int) (*store.User, error) {
+func (r *UserRepo) GetUserById(id int) (*models.User, error) {
 	query := `SELECT (id, username, password_hash) FROM users
 	WHERE id = $1`
 	row := r.db.QueryRow(query, id)
-	user := store.NewUser()
+	user := models.NewUser()
 	err := row.Scan(&user.Id, &user.Username, &user.PasswordHash)
 	if err != nil {
 		log.Printf("Selecting user(id=%v) error: %v\n", id, err)

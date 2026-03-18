@@ -29,4 +29,4 @@ func NewS3PresignClient(client *s3.Client) *s3.PresignClient {
 	return presignClient
 }
 
-func GetImageById(presignClient *s3.PresignClient, id int)
+// func GetImageById(presignClient *s3.PresignClient, id int)

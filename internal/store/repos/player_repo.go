@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/kungrem23/quizgo/internal/store"
+	"github.com/kungrem23/quizgo/internal/store/models"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -18,7 +18,7 @@ func NewPlayerRepo(rdb *redis.Client) *PlayerRepo {
 	return &PlayerRepo{rdb: rdb}
 }
 
-func (r *PlayerRepo) CreateNewPlayer(username string, gameId string) (*store.Player, error) {
+func (r *PlayerRepo) CreateNewPlayer(username string, gameId string) (*models.Player, error) {
 	ctx := context.Background()
 	exists, err := r.rdb.Exists(ctx, string(gameId)).Result()
 	if err != nil {
@@ -32,7 +32,7 @@ func (r *PlayerRepo) CreateNewPlayer(username string, gameId string) (*store.Pla
 			return nil, err
 		}
 	}
-	player := store.Player{
+	player := models.Player{
 		Id:       uuid.New().String(),
 		Username: username,
 		Score:    0,
