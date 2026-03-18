@@ -57,7 +57,9 @@ func NewDBConnection() *sql.DB {
 	return db
 }
 
-func GetTestPGData(quizRepo *repos.QuizRepo, quiz *models.Quiz, userRepo *repos.UserRepo, user *models.User, gameRepo *repos.GameRepo, game *models.Game, answerRepo *repos.AnswerRepo, answer *models.Answer, questionRepo *repos.QuestionRepo, question *models.Question) error {
+func GetTestPGData(quizRepo *repos.QuizRepo, quiz *models.Quiz, userRepo *repos.UserRepo, user *models.User,
+	gameRepo *repos.GameRepo, game *models.Game, answerRepo *repos.AnswerRepo, answer *models.Answer,
+	questionRepo *repos.QuestionRepo, question *models.Question) error {
 	user, err := userRepo.CreateNewUser(uuid.NewString(), "12345678")
 	if err != nil {
 		return err
@@ -85,3 +87,8 @@ func GetTestPGData(quizRepo *repos.QuizRepo, quiz *models.Quiz, userRepo *repos.
 	fmt.Printf("%v\n", game)
 	return nil
 }
+
+// func CheckGetFuncs(quizRepo *repos.QuizRepo, userRepo *repos.UserRepo, gameRepo *repos.GameRepo,
+// 	answerRepo *repos.AnswerRepo, questionRepo *repos.QuestionRepo) error {
+
+// }

@@ -6,7 +6,6 @@ import (
 	// "net/http"
 	"fmt"
 
-	// "github.com/google/uuid"
 	"github.com/kungrem23/quizgo/internal/store/models"
 	"github.com/kungrem23/quizgo/internal/store/postgres"
 	redis "github.com/kungrem23/quizgo/internal/store/redis"
@@ -33,12 +32,15 @@ func main() {
 	gameRepo := repos.NewGameRepo(db)
 	answerRepo := repos.NewAnswerRepo(db)
 	questionRepo := repos.NewQuestionRepo(db)
+
 	quiz := models.NewQuiz()
 	user := models.NewUser()
 	game := models.NewGame()
 	answer := models.NewAnswer()
 	question := models.NewQuestion()
+
 	err := postgres.GetTestPGData(quizRepo, quiz, userRepo, user, gameRepo, game, answerRepo, answer, questionRepo, question)
+
 	playerRepo := repos.NewPlayerRepo(rdb)
 	player, err := playerRepo.CreateNewPlayer("player2", game.Id)
 	if err != nil {
