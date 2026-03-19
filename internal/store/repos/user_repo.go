@@ -53,7 +53,7 @@ func (r *UserRepo) GetAllUsers() ([]*models.User, error) {
 }
 
 func (r *UserRepo) GetUserById(id int) (*models.User, error) {
-	query := `SELECT (id, username, password_hash) FROM users
+	query := `SELECT id, username, password_hash FROM users
 	WHERE id = $1`
 	row := r.db.QueryRow(query, id)
 	user := models.NewUser()

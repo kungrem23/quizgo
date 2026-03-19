@@ -10,6 +10,7 @@ import (
 	"github.com/kungrem23/quizgo/internal/store/postgres"
 	redis "github.com/kungrem23/quizgo/internal/store/redis"
 	"github.com/kungrem23/quizgo/internal/store/repos"
+	"github.com/kungrem23/quizgo/internal/tests"
 	// s3 "github.com/kungrem23/quizgo/internal/store/s3"
 )
 
@@ -40,6 +41,13 @@ func main() {
 	question := models.NewQuestion()
 
 	err := postgres.GetTestPGData(quizRepo, quiz, userRepo, user, gameRepo, game, answerRepo, answer, questionRepo, question)
+	if err != nil {
+		return
+	}
+	err = tests.GetFuncsTests(*quizRepo, *userRepo, *gameRepo, *answerRepo, *questionRepo)
+	if err != nil {
+		return
+	}
 
 	playerRepo := repos.NewPlayerRepo(rdb)
 	player, err := playerRepo.CreateNewPlayer("player2", game.Id)

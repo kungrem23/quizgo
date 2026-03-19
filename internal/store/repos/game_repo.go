@@ -93,7 +93,7 @@ func (r *GameRepo) GetAllGames() ([]*models.Game, error) {
 
 func (r *GameRepo) GetGamesByQuizId(quizId int) ([]*models.Game, error) {
 	query := `SELECT id, code, is_started, quiz_id FROM games
-	WHERE question_id=$1`
+	WHERE quiz_id=$1`
 	rows, err := r.db.Query(query, quizId)
 	if err != nil {
 		log.Printf("Get games error: %v", err)
