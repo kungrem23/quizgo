@@ -65,6 +65,19 @@ func (r *UserRepo) GetUserById(id int) (*models.User, error) {
 	return user, nil
 }
 
+func (r *UserRepo) GetUserByUsername(username string) (*models.User, error) {
+	query := `SELECT id, username, password_hash FROM users
+	WHERE username=$1`
+	row := r.db.QueryRow(query, username)
+	user := models.NewUser()
+	err := row.Scan(&user.Id, &user.Username, &user.PasswordHash)
+	if err != nil {
+		log.Printf("Selecting user by username(%v) error: %v", username, err)
+		return nil, err
+	}
+	return user, nil
+}
+
 func (r *UserRepo) Deleteuser(id int) error {
 	query := "DELETE FROM users WHERE id = $1;"
 	_, err := r.db.Exec(query, id)

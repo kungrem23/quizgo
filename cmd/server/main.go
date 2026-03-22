@@ -23,7 +23,10 @@ func main() {
 	// }
 	db := postgres.NewDBConnection()
 	defer db.Close()
-	rdb, _ := redis.NewRedisConnection()
+	rdb, err := redis.NewRedisConnection()
+	if err != nil {
+		return
+	}
 	defer rdb.Close()
 	// s3Client, _ := s3.NewS3Connection()
 	// fmt.Printf("%v\n", s3Client)
@@ -40,7 +43,7 @@ func main() {
 	answer := models.NewAnswer()
 	question := models.NewQuestion()
 
-	err := postgres.GetTestPGData(quizRepo, quiz, userRepo, user, gameRepo, game, answerRepo, answer, questionRepo, question)
+	err = postgres.GetTestPGData(quizRepo, quiz, userRepo, user, gameRepo, game, answerRepo, answer, questionRepo, question)
 	if err != nil {
 		return
 	}
@@ -48,6 +51,11 @@ func main() {
 	if err != nil {
 		return
 	}
+	user1, err := userRepo.GetUserByUsername("1234567890")
+	if err != nil {
+		return
+	}
+	fmt.Printf("%v", user1)
 
 	playerRepo := repos.NewPlayerRepo(rdb)
 	player, err := playerRepo.CreateNewPlayer("player2", game.Id)
