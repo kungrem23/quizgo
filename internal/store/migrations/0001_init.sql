@@ -11,14 +11,6 @@ CREATE TABLE IF NOT EXISTS quizzes (
     FOREIGN KEY (author_id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS games (
-    id VARCHAR(40) PRIMARY KEY,
-    code VARCHAR(40) NOT NULL UNIQUE,
-    is_started BOOLEAN DEFAULT FALSE,
-    quiz_id INT NOT NULL,
-    FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
-);
-
 CREATE TABLE IF NOT EXISTS images(
     id VARCHAR(40) PRIMARY KEY,
     image_url VARCHAR(200) NOT NULL
@@ -29,9 +21,10 @@ CREATE TABLE IF NOT EXISTS questions(
     text_content VARCHAR(200) NOT NULL,
     position INT NOT NULL,
     quiz_id INT NOT NULL,
-    FOREIGN KEY (quiz_id) REFERENCES quizzes(id),
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
     image_id VARCHAR(40),
-    FOREIGN KEY (image_id) REFERENCES images(id)
+    FOREIGN KEY (image_id) REFERENCES images(id),
+    UNIQUE (quiz_id, position)
 );
 
 CREATE TABLE IF NOT EXISTS answers(

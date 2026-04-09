@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/uuid"
-	"github.com/kungrem23/quizgo/internal/store/models"
-	"github.com/kungrem23/quizgo/internal/store/repos"
+	// "github.com/google/uuid"
+	// "github.com/kungrem23/quizgo/internal/store/models"
+	// "github.com/kungrem23/quizgo/internal/store/repos"
 	_ "github.com/lib/pq"
 )
 
@@ -57,36 +57,36 @@ func NewDBConnection() *sql.DB {
 	return db
 }
 
-func GetTestPGData(quizRepo *repos.QuizRepo, quiz *models.Quiz, userRepo *repos.UserRepo, user *models.User,
-	gameRepo *repos.GameRepo, game *models.Game, answerRepo *repos.AnswerRepo, answer *models.Answer,
-	questionRepo *repos.QuestionRepo, question *models.Question) error {
-	user, err := userRepo.CreateNewUser(uuid.NewString(), "12345678")
-	if err != nil {
-		return err
-	}
-	quiz, err = quizRepo.CreateNewQuiz(uuid.NewString(), user.Id)
-	if err != nil {
-		return err
-	}
-	question, err = questionRepo.CreateNewQuestion(uuid.NewString(), "", quiz.Id)
-	if err != nil {
-		return err
-	}
-	answer, err = answerRepo.CreateNewAnswer(uuid.NewString(), true, question.Id)
-	if err != nil {
-		return err
-	}
-	game, err = gameRepo.CreateNewGame(uuid.NewString(), quiz.Id)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%v\n", user)
-	fmt.Printf("%v\n", quiz)
-	fmt.Printf("%v\n", question)
-	fmt.Printf("%v\n", answer)
-	fmt.Printf("%v\n", game)
-	return nil
-}
+// func GetTestPGData(quizRepo *repos.QuizRepo, quiz *models.Quiz, userRepo *repos.UserRepo, user *models.User,
+// 	gameRepo *repos.GameRepo, game *models.Game, answerRepo *repos.AnswerRepo, answer *models.Answer,
+// 	questionRepo *repos.QuestionRepo, question *models.Question) error {
+// 	user, err := userRepo.CreateNewUser(uuid.NewString(), "12345678")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	quiz, err = quizRepo.CreateNewQuiz(uuid.NewString(), user.Id)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	question, err = questionRepo.CreateNewQuestion(uuid.NewString(), "", quiz.Id)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	answer, err = answerRepo.CreateNewAnswer(uuid.NewString(), true, question.Id)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	game, err = gameRepo.CreateNewGame(uuid.NewString(), quiz.Id)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Printf("%v\n", user)
+// 	fmt.Printf("%v\n", quiz)
+// 	fmt.Printf("%v\n", question)
+// 	fmt.Printf("%v\n", answer)
+// 	fmt.Printf("%v\n", game)
+// 	return nil
+// }
 
 // func CheckGetFuncs(quizRepo *repos.QuizRepo, userRepo *repos.UserRepo, gameRepo *repos.GameRepo,
 // 	answerRepo *repos.AnswerRepo, questionRepo *repos.QuestionRepo) error {
