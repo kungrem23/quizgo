@@ -1,31 +1,28 @@
-package postgres
+package quiz
 
 import (
 	"context"
-	"database/sql"
-
+	// "database/sql"
 	// "fmt"
 	// "log"
-
-	"github.com/kungrem23/quizgo/internal/domain/quiz"
 	// "github.com/kungrem23/quizgo/internal/store/models"
 )
 
-type QuizRepo struct {
-	db *sql.DB
-}
+// type QuizRepo struct {
+// 	db *sql.DB
+// }
 
-func NewQuizRepo(db *sql.DB) *QuizRepo {
-	return &QuizRepo{db: db}
-}
+// func NewQuizRepo(db *sql.DB) *Repository {
+// 	return &QuizRepo{db: db}
+// }
 
-func (r *QuizRepo) CreateQuiz(ctx context.Context, qui quiz.Quiz) error {
+func (r *PostgresRepository) CreateQuiz(ctx context.Context, quiz Quiz) error {
 	query := `INSERT INTO quizzes 
 	(title, author_id)
 	VALUES ($1, $2)
 	RETURNING (id, title, author_id)`
 	// var q quiz.Quiz
-	_, err := r.db.ExecContext(ctx, query, qui.Title, qui.AuthorId)
+	_, err := r.db.ExecContext(ctx, query, quiz.Title, quiz.AuthorId)
 	// quiz := models.NewQuiz()
 	// err := row.Scan(&quiz.Id, &quiz.Title, &quiz.AuthorId)
 	if err != nil {
@@ -45,7 +42,7 @@ func (r *QuizRepo) CreateQuiz(ctx context.Context, qui quiz.Quiz) error {
 // 	return nil
 // }
 
-func (r *QuizRepo) GetAnswers(ctx context.Context, quizId int, questionMap map[int]*quiz.Question) error {
+func (r *PostgresRepository) GetQuizAnswers(ctx context.Context, quizId int, questionMap map[int]*Question) error {
 	query := `SELECT id, text_content, is_correct, question_id
 	FROM answers
 	WHERE question_id IN 
@@ -56,7 +53,7 @@ func (r *QuizRepo) GetAnswers(ctx context.Context, quizId int, questionMap map[i
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var a quiz.Answer
+		var a Answer
 		err = rows.Scan(&a.Id, &a.TextContent, &a.IsCorrect, &a.QuestionId)
 		if err != nil {
 			return err
@@ -68,7 +65,7 @@ func (r *QuizRepo) GetAnswers(ctx context.Context, quizId int, questionMap map[i
 	return nil
 }
 
-func (r *QuizRepo) GetQuestions(ctx context.Context, quizId int) ([]quiz.Question, error) {
+func (r *PostgresRepository) GetQuizQuestions(ctx context.Context, quizId int) ([]Question, error) {
 	query := `SELECT id, text_content, position, quiz_id, image_id 
 	FROM questions 
 	WHERE quiz_id=$1 
@@ -79,10 +76,10 @@ func (r *QuizRepo) GetQuestions(ctx context.Context, quizId int) ([]quiz.Questio
 		return nil, err
 	}
 	defer rows.Close()
-	var questions []quiz.Question
-	questionMap := make(map[int]*quiz.Question)
+	var questions []Question
+	questionMap := make(map[int]*Question)
 	for rows.Next() {
-		var qu quiz.Question
+		var qu Question
 		err := rows.Scan(&qu.Id, &qu.TextContent, &qu.Position, &qu.QuizId, &qu.ImageId)
 		if err != nil {
 			return nil, err
@@ -90,15 +87,15 @@ func (r *QuizRepo) GetQuestions(ctx context.Context, quizId int) ([]quiz.Questio
 		questions = append(questions, qu)
 		questionMap[qu.Id] = &questions[len(questions)-1]
 	}
-	err = r.GetAnswers(ctx, quizId, questionMap)
+	err = r.GetQuizAnswers(ctx, quizId, questionMap)
 	if err != nil {
 		return nil, err
 	}
 	return questions, nil
 }
 
-func (r *QuizRepo) GetQuiz(ctx context.Context, id int) (quiz.Quiz, error) {
-	var q quiz.Quiz
+func (r *PostgresRepository) GetQuiz(ctx context.Context, id int) (Quiz, error) {
+	var q Quiz
 	query := `SELECT id, title, author_id FROM quizzes WHERE id=$1`
 	row := r.db.QueryRowContext(ctx, query, id)
 	err := row.Scan(&q.Id, &q.Title, &q.AuthorId)
@@ -106,7 +103,7 @@ func (r *QuizRepo) GetQuiz(ctx context.Context, id int) (quiz.Quiz, error) {
 		// log.Printf("Scanning quiz(id=%v) error: %v", id, err)
 		return q, err
 	}
-	questions, err := r.GetQuestions(ctx, id)
+	questions, err := r.GetQuizQuestions(ctx, id)
 	if err != nil {
 		return q, err
 	}
@@ -114,8 +111,8 @@ func (r *QuizRepo) GetQuiz(ctx context.Context, id int) (quiz.Quiz, error) {
 	return q, nil
 }
 
-func (r *QuizRepo) ListQuizzes(ctx context.Context) ([]quiz.Quiz, error) {
-	quizzes := []quiz.Quiz{}
+func (r *PostgresRepository) ListQuizzes(ctx context.Context) ([]Quiz, error) {
+	quizzes := []Quiz{}
 	query := `SELECT id, title, author_id FROM quizzes`
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
@@ -123,12 +120,12 @@ func (r *QuizRepo) ListQuizzes(ctx context.Context) ([]quiz.Quiz, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var q quiz.Quiz
+		var q Quiz
 		err := rows.Scan(&q.Id, &q.Title, &q.AuthorId)
 		if err != nil {
 			return nil, err
 		}
-		questions, err := r.GetQuestions(ctx, q.Id)
+		questions, err := r.GetQuizQuestions(ctx, q.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -138,8 +135,8 @@ func (r *QuizRepo) ListQuizzes(ctx context.Context) ([]quiz.Quiz, error) {
 	return quizzes, nil
 }
 
-func (r *QuizRepo) ListByAuthor(ctx context.Context, authorID int) ([]quiz.Quiz, error) {
-	quizzes := []quiz.Quiz{}
+func (r *PostgresRepository) ListQuizzesByAuthor(ctx context.Context, authorID int) ([]Quiz, error) {
+	quizzes := []Quiz{}
 	query := `SELECT id, title, author_id FROM quizzes WHERE author_id = $1`
 	rows, err := r.db.QueryContext(ctx, query, authorID)
 	if err != nil {
@@ -147,12 +144,12 @@ func (r *QuizRepo) ListByAuthor(ctx context.Context, authorID int) ([]quiz.Quiz,
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var q quiz.Quiz
+		var q Quiz
 		err := rows.Scan(&q.Id, &q.Title, &q.AuthorId)
 		if err != nil {
 			return nil, err
 		}
-		questions, err := r.GetQuestions(ctx, q.Id)
+		questions, err := r.GetQuizQuestions(ctx, q.Id)
 		if err != nil {
 			return nil, err
 		}

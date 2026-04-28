@@ -1,4 +1,4 @@
-package repos
+package game
 
 import (
 	"context"
