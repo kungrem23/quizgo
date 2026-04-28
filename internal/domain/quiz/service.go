@@ -2,13 +2,18 @@ package quiz
 
 import (
 	"context"
+	"database/sql"
+	// "regexp"
+	"errors"
+
+	"github.com/kungrem23/quizgo/internal/utils"
 )
 
 type Service struct {
-	repo PostgresRepository
+	repo Repository
 }
 
-func NewService(r PostgresRepository) *Service {
+func NewService(r Repository) *Service {
 	return &Service{repo: r}
 }
 
@@ -48,7 +53,7 @@ func (s *Service) GetQuestion(ctx context.Context, id int) (Question, error) {
 	return s.repo.GetQuestion(ctx, id)
 }
 
-func (s *Service) ListQuestons(ctx context.Context) ([]Question, error) {
+func (s *Service) ListQuestions(ctx context.Context) ([]Question, error) {
 	return s.repo.GetAllQuestions(ctx)
 }
 
@@ -104,4 +109,43 @@ func (s *Service) GetUserByUsername(ctx context.Context, username string) (User,
 
 func (s *Service) ListUsers(ctx context.Context) ([]User, error) {
 	return s.repo.GetAllUsers(ctx)
+}
+
+// ===========AUTHORIZATION===============
+
+var ErrInvalidUsername = errors.New("invalid username")
+var ErrInvalidPassword = errors.New("invalid password")
+
+func (s *Service) Login(ctx context.Context, username, password string) (string, error) {
+	user, err := s.GetUserByUsername(ctx, username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", ErrInvalidUsername
+		} else {
+			return "", err
+		}
+	}
+
+	if !utils.CheckPasswordHash(password, user.PasswordHash) {
+		return "", ErrInvalidPassword
+	}
+	return utils.GenerateJWT(user.Id)
+}
+
+var ErrTakenUsername = errors.New("user with this username already exists")
+
+func (s *Service) Register(ctx context.Context, username, password string) error {
+	_, err := s.GetUserByUsername(ctx, username)
+	if err == nil {
+		return ErrTakenUsername
+	}
+	if err == sql.ErrNoRows {
+		passwordHash, err := utils.HashPassword(password)
+		if err != nil {
+			return err
+		}
+		err = s.CreateUser(ctx, username, passwordHash)
+		return err
+	}
+	return err
 }

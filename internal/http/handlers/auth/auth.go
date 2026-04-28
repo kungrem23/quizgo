@@ -1,24 +1,27 @@
 package auth
 
 import (
-	"database/sql"
+	// "database/sql"
+	// "context"
 	"encoding/json"
+	"errors"
 	"fmt"
+
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
 
-	"github.com/kungrem23/quizgo/internal/store/repos"
-	"github.com/kungrem23/quizgo/internal/utils"
+	"github.com/kungrem23/quizgo/internal/domain/quiz"
+	// "github.com/kungrem23/quizgo/internal/utils"
 )
 
 type AuthHandler struct {
-	userRepo *repos.UserRepo
+	service *quiz.Service
 }
 
-func NewAuthHandler(userRepo *repos.UserRepo) *AuthHandler {
-	return &AuthHandler{userRepo: userRepo}
+func NewAuthHandler(service *quiz.Service) *AuthHandler {
+	return &AuthHandler{service: service}
 }
 
 var loginRegex = regexp.MustCompile(`^[a-zA-Z0-9._-#$!]{3-40}$`)
@@ -91,21 +94,21 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	user, err := h.userRepo.GetUserByUsername(req.Username)
-	if err == sql.ErrNoRows {
-		WriteJSON(w, http.StatusUnauthorized, ErrorResponse{
-			Error: "unauthorized",
-			Fields: map[string]string{
-				"username": "invalid",
-			},
-		})
-		return
-	} else if err != nil {
-		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
-			Error: "server error",
-		})
-		return
-	}
+	// user, err := h.repo.GetUserByUsername(req.Username)
+	// if err == sql.ErrNoRows {
+	// 	WriteJSON(w, http.StatusUnauthorized, ErrorResponse{
+	// 		Error: "unauthorized",
+	// 		Fields: map[string]string{
+	// 			"username": "invalid",
+	// 		},
+	// 	})
+	// 	return
+	// } else if err != nil {
+	// 	WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
+	// 		Error: "server error",
+	// 	})
+	// 	return
+	// }
 	// hash, err := utils.HashPassword(req.Password)
 	// if err != nil {
 	// 	WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
@@ -113,26 +116,95 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// 	})
 	// 	return
 	// }
-	if !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
-		WriteJSON(w, http.StatusUnauthorized, ErrorResponse{
-			Error: "unauthorized",
+	// if !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
+	// 	WriteJSON(w, http.StatusUnauthorized, ErrorResponse{
+	// 		Error: "unauthorized",
+	// 		Fields: map[string]string{
+	// 			"password": "invalid",
+	// 		},
+	// 	})
+	// 	return
+	// }
+	token, err := h.service.Login(r.Context(), req.Username, req.Password)
+	if err != nil {
+		switch {
+		case errors.Is(err, quiz.ErrInvalidUsername):
+			WriteJSON(w, http.StatusUnauthorized, ErrorResponse{
+				Error: "unauthorized",
+				Fields: map[string]string{
+					"username": "invalid",
+				},
+			})
+			return
+		case errors.Is(err, quiz.ErrInvalidPassword):
+			WriteJSON(w, http.StatusUnauthorized, ErrorResponse{
+				Error: "unauthorized",
+				Fields: map[string]string{
+					"password": "invalid",
+				},
+			})
+			return
+		default:
+			log.Printf("Generating JWT error: %v", err)
+			WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
+				Error: "server error",
+			})
+			return
+		}
+	}
+	w.Header().Set("Content-type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"token": fmt.Sprintf("Bearer %v", token),
+	})
+}
+
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	var req LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	req.Username = strings.TrimSpace(req.Username)
+	req.Password = strings.TrimSpace(req.Password)
+	if !req.ValidateLogin() {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{
+			Error: "validation failed",
+			Fields: map[string]string{
+				"username": "invalid",
+			},
+		})
+		return
+	}
+	if !req.ValidatePassword() {
+		WriteJSON(w, http.StatusBadRequest, ErrorResponse{
+			Error: "validation failed",
 			Fields: map[string]string{
 				"password": "invalid",
 			},
 		})
 		return
 	}
-	token, err := utils.GenerateJWT(user.Id)
+	err = h.service.Register(r.Context(), req.Username, req.Password)
 	if err != nil {
-		log.Printf("Generating JWT error: %v", err)
-		WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
-			Error: "server error",
-		})
-		return
+		if errors.Is(err, quiz.ErrTakenUsername) {
+			WriteJSON(w, http.StatusBadRequest, ErrorResponse{
+				Error: "registration failed",
+				Fields: map[string]string{
+					"username": "already exists",
+				},
+			})
+			return
+		} else {
+			WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
+				Error: "registration failed",
+			})
+			return
+		}
 	}
-	w.Header().Set("Content-type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"token": fmt.Sprintf("Bearer %v", token),
-	})
-	return
+	w.WriteHeader(http.StatusCreated)
 }
