@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = os.Getenv("JWT_SECRET")
+var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 func GenerateJWT(userId int) (string, error) {
 	claims := jwt.MapClaims{

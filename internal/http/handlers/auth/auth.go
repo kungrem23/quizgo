@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/kungrem23/quizgo/internal/domain/quiz"
+	"github.com/kungrem23/quizgo/internal/http/respond"
 	// "github.com/kungrem23/quizgo/internal/utils"
 )
 
@@ -24,9 +25,9 @@ func NewAuthHandler(service *quiz.Service) *AuthHandler {
 	return &AuthHandler{service: service}
 }
 
-var loginRegex = regexp.MustCompile(`^[a-zA-Z0-9._-#$!]{3-40}$`)
+var loginRegex = regexp.MustCompile(`^[a-zA-Z0-9._\-#$!]{3,40}$`)
 
-var passwordRegex = regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()\-_=+\[\]{};:'",.<>\/?\\|~]{3-40}$`)
+var passwordRegex = regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()\-_=+\[\]{};:'",.<>\/?\\|~]{3,40}$`)
 
 type LoginRequest struct {
 	Username string `json:"username"`
@@ -51,23 +52,7 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-type ErrorResponse struct {
-	Error   string            `json:"error"`
-	Message string            `json:"message,omitempty"`
-	Fields  map[string]string `json:"fields,omitempty"`
-}
-
-func WriteJSON(w http.ResponseWriter, status int, data any) {
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
-}
-
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
 	var req LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -77,7 +62,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	req.Username = strings.TrimSpace(req.Username)
 	req.Password = strings.TrimSpace(req.Password)
 	if !req.ValidateLogin() {
-		WriteJSON(w, http.StatusBadRequest, ErrorResponse{
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
 			Error: "validation failed",
 			Fields: map[string]string{
 				"username": "invalid",
@@ -86,7 +71,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !req.ValidatePassword() {
-		WriteJSON(w, http.StatusBadRequest, ErrorResponse{
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
 			Error: "validation failed",
 			Fields: map[string]string{
 				"password": "invalid",
@@ -129,7 +114,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, quiz.ErrInvalidUsername):
-			WriteJSON(w, http.StatusUnauthorized, ErrorResponse{
+			respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
 				Error: "unauthorized",
 				Fields: map[string]string{
 					"username": "invalid",
@@ -137,7 +122,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		case errors.Is(err, quiz.ErrInvalidPassword):
-			WriteJSON(w, http.StatusUnauthorized, ErrorResponse{
+			respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
 				Error: "unauthorized",
 				Fields: map[string]string{
 					"password": "invalid",
@@ -146,7 +131,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		default:
 			log.Printf("Generating JWT error: %v", err)
-			WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
+			respond.WriteJSON(w, http.StatusInternalServerError, respond.ErrorResponse{
 				Error: "server error",
 			})
 			return
@@ -159,10 +144,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
 	var req LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -172,7 +153,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	req.Username = strings.TrimSpace(req.Username)
 	req.Password = strings.TrimSpace(req.Password)
 	if !req.ValidateLogin() {
-		WriteJSON(w, http.StatusBadRequest, ErrorResponse{
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
 			Error: "validation failed",
 			Fields: map[string]string{
 				"username": "invalid",
@@ -181,7 +162,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !req.ValidatePassword() {
-		WriteJSON(w, http.StatusBadRequest, ErrorResponse{
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
 			Error: "validation failed",
 			Fields: map[string]string{
 				"password": "invalid",
@@ -192,7 +173,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	err = h.service.Register(r.Context(), req.Username, req.Password)
 	if err != nil {
 		if errors.Is(err, quiz.ErrTakenUsername) {
-			WriteJSON(w, http.StatusBadRequest, ErrorResponse{
+			respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
 				Error: "registration failed",
 				Fields: map[string]string{
 					"username": "already exists",
@@ -200,7 +181,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		} else {
-			WriteJSON(w, http.StatusInternalServerError, ErrorResponse{
+			respond.WriteJSON(w, http.StatusInternalServerError, respond.ErrorResponse{
 				Error: "registration failed",
 			})
 			return

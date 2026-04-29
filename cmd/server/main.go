@@ -9,7 +9,7 @@ import (
 	"github.com/kungrem23/quizgo/internal/store/models"
 	"github.com/kungrem23/quizgo/internal/store/postgres"
 	redis "github.com/kungrem23/quizgo/internal/store/redis"
-	"github.com/kungrem23/quizgo/internal/store/repos"
+	// "github.com/kungrem23/quizgo/internal/store/repos"
 	"github.com/kungrem23/quizgo/internal/tests"
 	// s3 "github.com/kungrem23/quizgo/internal/store/s3"
 )
