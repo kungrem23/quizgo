@@ -25,11 +25,7 @@ func (r *PostgresRepository) CreateQuiz(ctx context.Context, quiz Quiz) error {
 	_, err := r.db.ExecContext(ctx, query, quiz.Title, quiz.AuthorId)
 	// quiz := models.NewQuiz()
 	// err := row.Scan(&quiz.Id, &quiz.Title, &quiz.AuthorId)
-	if err != nil {
-		// log.Printf("Adding quiz error: %v\n", err)
-		return err
-	}
-	return nil
+	return err
 }
 
 // func (r *QuizRepo) DeleteQuiz(id int) error {

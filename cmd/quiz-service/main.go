@@ -25,6 +25,8 @@ func main() {
 	router.HandleFunc("POST /auth/register", authHandler.Register)
 
 	router.HandleFunc("GET /api/quiz/get/{id}", quizHandler.GetQuiz)
+	router.HandleFunc("GET /api/quiz/list", quizHandler.ListQuizzes)
+	router.HandleFunc("GET /api/quiz/list/{authorId}", quizHandler.ListQuizzesByAuthor)
 
 	log.Println("server started on port :8080")
 	if err := http.ListenAndServe(":8080", router); err != nil {

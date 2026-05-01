@@ -4,8 +4,8 @@ package quiz
 
 type Quiz struct {
 	Id        int
-	Title     string
-	AuthorId  int
+	Title     string `json:"title"`
+	AuthorId  int    `json:"author_id"`
 	Questions []Question
 }
 
@@ -25,10 +25,10 @@ func NewUser() *User {
 
 type Question struct {
 	Id          int
-	QuizId      int
-	Position    int
-	TextContent string
-	ImageId     *string
+	QuizId      int     `json:"quiz_id"`
+	Position    int     `json:"position"`
+	TextContent string  `json:"text_content"`
+	ImageId     *string `json:"image_id"`
 	Answers     []Answer
 }
 

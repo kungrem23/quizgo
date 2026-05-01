@@ -56,7 +56,9 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
+			Error: "bad request",
+		})
 		return
 	}
 	req.Username = strings.TrimSpace(req.Username)

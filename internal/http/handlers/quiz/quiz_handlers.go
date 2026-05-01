@@ -2,14 +2,20 @@ package quizhandler
 
 import (
 	"database/sql"
+	"encoding/json"
+	"strings"
+
 	// "encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 
 	// "github.com/gorilla/mux"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/kungrem23/quizgo/internal/domain/quiz"
 	"github.com/kungrem23/quizgo/internal/http/respond"
+	"github.com/kungrem23/quizgo/internal/utils"
+	// "github.com/kungrem23/quizgo/internal/store/models"
 )
 
 type QuizHandler struct {
@@ -24,7 +30,9 @@ func (h *QuizHandler) GetQuiz(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
+			Error: "bad request",
+		})
 		return
 	}
 	quiz, err := h.service.GetQuiz(r.Context(), id)
@@ -43,4 +51,100 @@ func (h *QuizHandler) GetQuiz(w http.ResponseWriter, r *http.Request) {
 
 	}
 	respond.WriteJSON(w, http.StatusOK, quiz)
+}
+
+type CreateQuizRequest struct {
+	Title string `json:"title"`
+}
+
+func (h *QuizHandler) CreateQuiz(w http.ResponseWriter, r *http.Request) {
+	tokenStr := strings.Split(r.Header.Get("Authorization"), " ")
+	if len(tokenStr) != 2 || tokenStr[0] != "Bearer" {
+		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
+			Error: "invalid token",
+		})
+		return
+	}
+	token, err := utils.ParseJWT(tokenStr[1])
+	if err != nil || !token.Valid {
+		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
+			Error: "invalid token",
+		})
+		return
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
+			Error: "invalid token",
+		})
+		return
+	}
+	idValue, ok := claims["id"]
+	if !ok {
+		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
+			Error: "invalid token",
+		})
+		return
+	}
+	idFloat, ok := idValue.(float64)
+	if !ok {
+		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
+			Error: "invalid token",
+		})
+		return
+	}
+	authorId := int(idFloat)
+	var req CreateQuizRequest
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
+			Error: "bad request",
+		})
+		return
+	}
+	req.Title = strings.TrimSpace(req.Title)
+	if req.Title == "" {
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
+			Error: "empty title",
+		})
+		return
+	}
+	err = h.service.CreateQuiz(r.Context(), quiz.Quiz{AuthorId: authorId, Title: req.Title})
+	if err != nil {
+		respond.WriteJSON(w, http.StatusInternalServerError, respond.ErrorResponse{
+			Error: "server error",
+		})
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *QuizHandler) ListQuizzes(w http.ResponseWriter, r *http.Request) {
+	quizzes, err := h.service.ListQuizzes(r.Context())
+	if err != nil {
+		respond.WriteJSON(w, http.StatusInternalServerError, respond.ErrorResponse{
+			Error: "server error",
+		})
+		return
+	}
+	respond.WriteJSON(w, http.StatusOK, quizzes)
+}
+
+func (h *QuizHandler) ListQuizzesByAuthor(w http.ResponseWriter, r *http.Request) {
+	authorIdStr := r.PathValue("authorId")
+	authorId, err := strconv.Atoi(authorIdStr)
+	if err != nil {
+		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
+			Error: "invalid id",
+		})
+		return
+	}
+	quizzes, err := h.service.ListQuizzesByAuthor(r.Context(), authorId)
+	if err != nil {
+		respond.WriteJSON(w, http.StatusInternalServerError, respond.ErrorResponse{
+			Error: "server error",
+		})
+		return
+	}
+	respond.WriteJSON(w, http.StatusOK, quizzes)
 }

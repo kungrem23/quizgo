@@ -57,8 +57,8 @@ func (r *PostgresRepository) DeleteQuestion(ctx context.Context, id int) error {
 	}
 	query = `UPDATE questions
 	SET position = position - 1
-	WHERE position > $1;`
-	_, err = r.db.Exec(query, pos)
+	WHERE position > $1 AND quiz_id = $2;`
+	_, err = r.db.ExecContext(ctx, query, pos, question.QuizId)
 	if err != nil {
 		// log.Printf("Changing question's positions error: %v", err)
 		return err
@@ -70,12 +70,21 @@ func (r *PostgresRepository) ChangeQuestionPosition(ctx context.Context, id int,
 	if err != nil {
 		return err
 	}
-	pos := question.Position
+	old_pos := question.Position
 
-	query := `UPDATE questions
-	SET position = position + 1
-	WHERE position > $1;`
-	_, err = r.db.ExecContext(ctx, query, pos)
+	var query string
+	if new_position < old_pos {
+		query = `UPDATE questions
+			SET position = position + 1
+			WHERE quiz_id = $1 AND position < $2 AND position >= $3;`
+	} else if new_position > old_pos {
+		query = `UPDATE questions
+			SET position = position - 1
+			WHERE quiz_id = $1 AND position > $2 AND position <= $3;`
+	} else {
+		return nil
+	}
+	_, err = r.db.ExecContext(ctx, query, question.QuizId, old_pos, new_position)
 	if err != nil {
 		// log.Printf("Changing question's position error: %v\n", err)
 		return err
