@@ -17,39 +17,58 @@ import (
 // 	return &QuestionRepo{db: db}
 // }
 
-func (r *PostgresRepository) CreateNewQuestion(ctx context.Context, textContent string, quizId int) error {
+func (r *PostgresRepository) CreateNewQuestionAsAuthor(ctx context.Context, textContent string, quizId, authorId int) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `SELECT quizzes.author_id
+	FROM quizzes
+	WHERE quizzes.id = $1`
+	row := tx.QueryRowContext(ctx, query, quizId)
+	var quizAuthorId int
+	err = row.Scan(&quizAuthorId)
+	if err != nil {
+		return err
+	}
+	if quizAuthorId != authorId {
+		return middleware.ErrInsufficientRights
+	}
+
 	queryMax := `SELECT COALESCE(MAX(position), 0) + 1
 	FROM questions
 	WHERE quiz_id = $1;`
-	row := r.db.QueryRow(queryMax, quizId)
+	row = tx.QueryRow(queryMax, quizId)
 	var position int
-	err := row.Scan(&position)
+	err = row.Scan(&position)
 	if err != nil {
 		// log.Printf("Getting question's position errror: %v\n", err)
 		return err
 	}
-	query := `INSERT INTO questions
+	query = `INSERT INTO questions
 	(text_content, position, quiz_id)
 	VALUES ($1, $2, $3)`
 	// question := NewQuestion()
 	// if imageId != "" {
 	// 	_, err = r.db.ExecContext(ctx, query, textContent, position, quizId, imageId)
 	// } else {
-	_, err = r.db.ExecContext(ctx, query, textContent, position, quizId)
+	_, err = tx.ExecContext(ctx, query, textContent, position, quizId)
 	// }
 	// err = row.Scan(&question.Id, &question.Position, &question.TextContent, &question.QuizId, &question.ImageId)
 	if err != nil {
 		// log.Printf("Adding question error: %v", err)
 		return err
 	}
-	return nil
+	return tx.Commit()
 }
 
 func (r *PostgresRepository) DeleteQuestionAsAuthor(ctx context.Context, id int, authorId int) error {
-	query := `SELECT q.author_id
-	FROM questions qu
-	JOIN quizzes q ON q.id = qu.quiz_id
-	WHERE qu.id = $1`
+	query := `SELECT quizzes.author_id
+	FROM questions
+	JOIN quizzes ON quizzes.id = questions.quiz_id
+	WHERE questions.id = $1`
 	row := r.db.QueryRowContext(ctx, query, id)
 	var quizAuthorId int
 	err := row.Scan(&quizAuthorId)
@@ -86,6 +105,7 @@ func (r *PostgresRepository) DeleteQuestionAsAuthor(ctx context.Context, id int,
 	}
 	return tx.Commit()
 }
+
 func (r *PostgresRepository) ChangeQuestionPosition(ctx context.Context, id int, new_position int) error {
 	question, err := r.GetQuestion(ctx, id)
 	if err != nil {

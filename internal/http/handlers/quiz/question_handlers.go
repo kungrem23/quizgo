@@ -54,28 +54,6 @@ type CreateQuestionRequest struct {
 }
 
 func (h *QuestionHandler) CreateQuestion(w http.ResponseWriter, r *http.Request) {
-	// tokenStr := strings.Split(r.Header.Get("Authorization"), " ")
-	// if len(tokenStr) != 2 || tokenStr[0] != "Bearer" {
-	// 	respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
-	// 		Error: "invalid token",
-	// 	})
-	// 	return
-	// }
-	// token, err := utils.ParseJWT(tokenStr[1])
-	// if err != nil {
-	// 	respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
-	// 		Error: "invalid token",
-	// 	})
-	// 	return
-	// }
-	// claims, ok := token.Claims.(jwt.MapClaims)
-	// if !ok {
-	// 	respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
-	// 		Error: "invalid token",
-	// 	})
-	// 	return
-	// }
-	// idValue, ok := claims["id"]
 	userId, ok := middleware.UserIDFromContext(r.Context())
 	if !ok {
 		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
@@ -98,27 +76,19 @@ func (h *QuestionHandler) CreateQuestion(w http.ResponseWriter, r *http.Request)
 		})
 		return
 	}
-	quiz, err := h.service.GetQuiz(r.Context(), req.QuizId)
+	err = h.service.CreateQuestionAsAuthor(r.Context(), req.TextContent, req.QuizId, userId)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, middleware.ErrInsufficientRights) {
+			respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
+				Error: "you cant edit this quiz",
+			})
+			return
+		} else if errors.Is(err, sql.ErrNoRows) {
 			respond.WriteJSON(w, http.StatusNotFound, respond.ErrorResponse{
 				Error: "not found",
 			})
 			return
 		}
-		respond.WriteJSON(w, http.StatusInternalServerError, respond.ErrorResponse{
-			Error: "server error",
-		})
-		return
-	}
-	if quiz.AuthorId != userId {
-		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
-			Error: "you cant edit this quiz",
-		})
-		return
-	}
-	err = h.service.CreateQuestion(r.Context(), req.TextContent, req.QuizId)
-	if err != nil {
 		respond.WriteJSON(w, http.StatusInternalServerError, respond.ErrorResponse{
 			Error: "server error",
 		})

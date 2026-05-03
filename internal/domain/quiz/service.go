@@ -37,8 +37,8 @@ func (s *Service) ListQuizzesByAuthor(ctx context.Context, authorID int) ([]Quiz
 
 // ==============QUESTION===============
 
-func (s *Service) CreateQuestion(ctx context.Context, textContent string, quizId int) error {
-	return s.repo.CreateNewQuestion(ctx, textContent, quizId)
+func (s *Service) CreateQuestionAsAuthor(ctx context.Context, textContent string, quizId, authorId int) error {
+	return s.repo.CreateNewQuestionAsAuthor(ctx, textContent, quizId, authorId)
 }
 
 func (s *Service) DeleteQuestionAsAuthor(ctx context.Context, id int, userId int) error {
@@ -53,18 +53,19 @@ func (s *Service) GetQuestion(ctx context.Context, id int) (Question, error) {
 	return s.repo.GetQuestion(ctx, id)
 }
 
+// ????????????
 func (s *Service) ListQuestions(ctx context.Context) ([]Question, error) {
 	return s.repo.GetAllQuestions(ctx)
 }
 
 // ==============ANSWER===============
 
-func (s *Service) CreateAnswer(ctx context.Context, textContent string, isCorrect bool, questionId int) error {
-	return s.repo.CreateNewAnswer(ctx, textContent, isCorrect, questionId)
+func (s *Service) CreateAnswerAsAuthor(ctx context.Context, textContent string, isCorrect bool, questionId, userId int) error {
+	return s.repo.CreateNewAnswerAsAuthor(ctx, textContent, isCorrect, questionId, userId)
 }
 
-func (s *Service) DeleteAnswer(ctx context.Context, id int) error {
-	return s.repo.DeleteAnswer(ctx, id)
+func (s *Service) DeleteAnswerAsAuthor(ctx context.Context, id int, userId int) error {
+	return s.repo.DeleteAnswerAsAuthor(ctx, id, userId)
 }
 
 func (s *Service) GetAnswer(ctx context.Context, id int) (Answer, error) {

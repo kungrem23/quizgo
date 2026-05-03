@@ -4,6 +4,8 @@ import (
 	// "database/sql"
 	// "github.com/kungrem23/quizgo/internal/store/models"
 	"context"
+
+	"github.com/kungrem23/quizgo/internal/http/middleware"
 	// "log"
 )
 
@@ -15,12 +17,24 @@ import (
 // 	return &AnswerRepo{db: db}
 // }
 
-func (r *PostgresRepository) CreateNewAnswer(ctx context.Context, textContent string, isCorrect bool, questionId int) error {
-	query := `INSERT INTO answers
+func (r *PostgresRepository) CreateNewAnswerAsAuthor(ctx context.Context, textContent string, isCorrect bool, questionId int, userId int) error {
+	query := `SELECT quizzes.author_id
+	FROM questions
+	JOIN quizzes ON questions.quiz_id = quizzes.id
+	WHERE questions.id = $1`
+	row := r.db.QueryRowContext(ctx, query, questionId)
+	var quizAuthorId int
+	err := row.Scan(&quizAuthorId)
+	if err != nil {
+		return err
+	}
+	if quizAuthorId != userId {
+		return middleware.ErrInsufficientRights
+	}
+	query = `INSERT INTO answers
 	(text_content, is_correct, question_id)
-	VALUES ($1, $2, $3)
-	RETURNING id, text_content, is_correct, question_id;`
-	_, err := r.db.ExecContext(ctx, query, textContent, isCorrect, questionId)
+	VALUES ($1, $2, $3)`
+	_, err = r.db.ExecContext(ctx, query, textContent, isCorrect, questionId)
 	// answer := NewAnswer()
 	// err := row.Scan(&answer.Id, &answer.TextContent, &answer.IsCorrect, &answer.QuestionId)
 	// if err != nil {
@@ -30,9 +44,23 @@ func (r *PostgresRepository) CreateNewAnswer(ctx context.Context, textContent st
 	return err
 }
 
-func (r *PostgresRepository) DeleteAnswer(ctx context.Context, id int) error {
-	query := `DELETE FROM answers WHERE id = $1;`
-	_, err := r.db.ExecContext(ctx, query, id)
+func (r *PostgresRepository) DeleteAnswerAsAuthor(ctx context.Context, id int, userId int) error {
+	query := `SELECT quizzes.author_id
+	FROM answers
+	JOIN questions ON questions.id = answers.question_id
+	JOIN quizzes ON quizzes.id = questions.quiz_id
+	WHERE answers.id = $1`
+	row := r.db.QueryRowContext(ctx, query, id)
+	var authorId int
+	err := row.Scan(&authorId)
+	if err != nil {
+		return err
+	}
+	if userId != authorId {
+		return middleware.ErrInsufficientRights
+	}
+	query = `DELETE FROM answers WHERE id = $1;`
+	_, err = r.db.ExecContext(ctx, query, id)
 	// if err != nil {
 	// 	log.Printf("Deleting answer(id=%v) error: %v", id, err)
 	// 	return err

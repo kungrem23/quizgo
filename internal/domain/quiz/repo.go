@@ -13,7 +13,7 @@ type Repository interface {
 	CreateQuiz(ctx context.Context, quiz Quiz) error
 
 	// =========QUESTION=========
-	CreateNewQuestion(ctx context.Context, textContent string, quizId int) error
+	CreateNewQuestionAsAuthor(ctx context.Context, textContent string, quizId, authorId int) error
 	DeleteQuestionAsAuthor(ctx context.Context, id int, userId int) error
 	ChangeQuestionPosition(ctx context.Context, id int, new_position int) error
 	GetQuestion(ctx context.Context, id int) (Question, error)
@@ -21,8 +21,8 @@ type Repository interface {
 
 	// ==========ANSWER===========
 
-	CreateNewAnswer(ctx context.Context, textContent string, isCorrect bool, questionId int) error
-	DeleteAnswer(ctx context.Context, id int) error
+	CreateNewAnswerAsAuthor(ctx context.Context, textContent string, isCorrect bool, questionId, userId int) error
+	DeleteAnswerAsAuthor(ctx context.Context, id int, userId int) error
 	GetAnswer(ctx context.Context, id int) (Answer, error)
 	GetAnswersByQuestionId(ctx context.Context, questionId int) ([]Answer, error)
 
