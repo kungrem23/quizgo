@@ -37,12 +37,12 @@ func (s *Service) ListQuizzesByAuthor(ctx context.Context, authorID int) ([]Quiz
 
 // ==============QUESTION===============
 
-func (s *Service) CreateQuestion(ctx context.Context, textContent, imageId string, quizId int) error {
-	return s.repo.CreateNewQuestion(ctx, textContent, imageId, quizId)
+func (s *Service) CreateQuestion(ctx context.Context, textContent string, quizId int) error {
+	return s.repo.CreateNewQuestion(ctx, textContent, quizId)
 }
 
-func (s *Service) DeleteQuestion(ctx context.Context, id int) error {
-	return s.repo.DeleteQuestion(ctx, id)
+func (s *Service) DeleteQuestionAsAuthor(ctx context.Context, id int, userId int) error {
+	return s.repo.DeleteQuestionAsAuthor(ctx, id, userId)
 }
 
 func (s *Service) ChangeQuestionPosition(ctx context.Context, id, new_position int) error {

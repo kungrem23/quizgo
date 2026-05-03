@@ -11,10 +11,11 @@ import (
 	"strconv"
 
 	// "github.com/gorilla/mux"
-	"github.com/golang-jwt/jwt/v5"
+	// "github.com/golang-jwt/jwt/v5"
 	"github.com/kungrem23/quizgo/internal/domain/quiz"
-	"github.com/kungrem23/quizgo/internal/http/respond"
-	"github.com/kungrem23/quizgo/internal/utils"
+	"github.com/kungrem23/quizgo/internal/http/middleware"
+	"github.com/kungrem23/quizgo/internal/http/middleware/respond"
+	// "github.com/kungrem23/quizgo/internal/utils"
 	// "github.com/kungrem23/quizgo/internal/store/models"
 )
 
@@ -58,44 +59,15 @@ type CreateQuizRequest struct {
 }
 
 func (h *QuizHandler) CreateQuiz(w http.ResponseWriter, r *http.Request) {
-	tokenStr := strings.Split(r.Header.Get("Authorization"), " ")
-	if len(tokenStr) != 2 || tokenStr[0] != "Bearer" {
-		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
-			Error: "invalid token",
-		})
-		return
-	}
-	token, err := utils.ParseJWT(tokenStr[1])
-	if err != nil || !token.Valid {
-		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
-			Error: "invalid token",
-		})
-		return
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
+	authorId, ok := middleware.UserIDFromContext(r.Context())
 	if !ok {
 		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
 			Error: "invalid token",
 		})
 		return
 	}
-	idValue, ok := claims["id"]
-	if !ok {
-		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
-			Error: "invalid token",
-		})
-		return
-	}
-	idFloat, ok := idValue.(float64)
-	if !ok {
-		respond.WriteJSON(w, http.StatusUnauthorized, respond.ErrorResponse{
-			Error: "invalid token",
-		})
-		return
-	}
-	authorId := int(idFloat)
 	var req CreateQuizRequest
-	err = json.NewDecoder(r.Body).Decode(&req)
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		respond.WriteJSON(w, http.StatusBadRequest, respond.ErrorResponse{
 			Error: "bad request",

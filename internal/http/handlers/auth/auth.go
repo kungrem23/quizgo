@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/kungrem23/quizgo/internal/domain/quiz"
-	"github.com/kungrem23/quizgo/internal/http/respond"
+	"github.com/kungrem23/quizgo/internal/http/middleware/respond"
 	// "github.com/kungrem23/quizgo/internal/utils"
 )
 

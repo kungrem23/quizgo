@@ -9,6 +9,7 @@ import (
 	"github.com/kungrem23/quizgo/internal/domain/quiz"
 	"github.com/kungrem23/quizgo/internal/http/handlers/auth"
 	quizhandler "github.com/kungrem23/quizgo/internal/http/handlers/quiz"
+	"github.com/kungrem23/quizgo/internal/http/middleware"
 	"github.com/kungrem23/quizgo/internal/platform/postgres"
 )
 
@@ -21,12 +22,14 @@ func main() {
 	quizHandler := quizhandler.NewQuizHandler(service)
 
 	router := http.NewServeMux()
+
 	router.HandleFunc("POST /auth/login", authHandler.Login)
 	router.HandleFunc("POST /auth/register", authHandler.Register)
 
-	router.HandleFunc("GET /api/quiz/get/{id}", quizHandler.GetQuiz)
-	router.HandleFunc("GET /api/quiz/list", quizHandler.ListQuizzes)
-	router.HandleFunc("GET /api/quiz/list/{authorId}", quizHandler.ListQuizzesByAuthor)
+	router.Handle("POST /api/quizzes", middleware.Auth(http.HandlerFunc(quizHandler.CreateQuiz)))
+	router.HandleFunc("GET /api/quizzes/{id}", quizHandler.GetQuiz)
+	router.HandleFunc("GET /api/quizzes/", quizHandler.ListQuizzes)
+	router.HandleFunc("GET /api/users/{authorId}/quizzes", quizHandler.ListQuizzesByAuthor)
 
 	log.Println("server started on port :8080")
 	if err := http.ListenAndServe(":8080", router); err != nil {
