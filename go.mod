@@ -3,6 +3,7 @@ module github.com/kungrem23/quizgo
 go 1.25.1
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/aws/aws-sdk-go-v2/config v1.32.12
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.97.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
