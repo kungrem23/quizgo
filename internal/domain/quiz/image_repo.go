@@ -31,12 +31,22 @@ func (r *PostgresRepository) CreateNewImage(ctx context.Context, imageURL string
 
 func (r *PostgresRepository) DeleteImage(ctx context.Context, id string) error {
 	query := `DELETE FROM images WHERE id = $1`
-	_, err := r.db.ExecContext(ctx, query, id)
+	res, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return ErrNotFound
+	}
 	// if err != nil {
 	// 	// log.Printf("Deleting image(id=%v) error: %v", id, err)
 	// 	return err
 	// }
-	return err
+	return nil
 }
 
 func (r *PostgresRepository) GetImage(ctx context.Context, id string) (Image, error) {
