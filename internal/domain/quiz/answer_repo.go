@@ -60,16 +60,27 @@ func (r *PostgresRepository) DeleteAnswerAsAuthor(ctx context.Context, id int, u
 		return middleware.ErrInsufficientRights
 	}
 	query = `DELETE FROM answers WHERE id = $1;`
-	_, err = r.db.ExecContext(ctx, query, id)
+	res, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return ErrNotFound
+	}
 	// if err != nil {
 	// 	log.Printf("Deleting answer(id=%v) error: %v", id, err)
 	// 	return err
 	// }
-	return err
+	return nil
 }
 
 func (r *PostgresRepository) GetAnswer(ctx context.Context, id int) (Answer, error) {
-	query := `SELECT id, text_content, is_correct, question_id FROM answers WHERE id=$1`
+	query := `SELECT id, text_content, is_correct, question_id 
+	FROM answers WHERE id=$1`
 	row := r.db.QueryRowContext(ctx, query, id)
 	var answer Answer
 	err := row.Scan(&answer.Id, &answer.TextContent, &answer.IsCorrect, &answer.QuestionId)
@@ -81,8 +92,10 @@ func (r *PostgresRepository) GetAnswer(ctx context.Context, id int) (Answer, err
 }
 
 func (r *PostgresRepository) GetAllAnswers(ctx context.Context) ([]Answer, error) {
-	query := `SELECT id, text_content, is_correct, question_id FROM answers`
+	query := `SELECT id, text_content, is_correct, question_id 
+	FROM answers`
 	rows, err := r.db.QueryContext(ctx, query)
+
 	if err != nil {
 		// log.Printf("Get answers error: %v", err)
 		return nil, err
@@ -102,7 +115,8 @@ func (r *PostgresRepository) GetAllAnswers(ctx context.Context) ([]Answer, error
 }
 
 func (r *PostgresRepository) GetAnswersByQuestionId(ctx context.Context, questionId int) ([]Answer, error) {
-	query := `SELECT id, text_content, is_correct, question_id FROM answers
+	query := `SELECT id, text_content, is_correct, question_id 
+	FROM answers
 	WHERE question_id=$1`
 	rows, err := r.db.QueryContext(ctx, query, questionId)
 	if err != nil {
