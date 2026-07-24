@@ -40,7 +40,7 @@ func (r *PostgresRepository) CreateNewQuestionAsAuthor(ctx context.Context, text
 	queryMax := `SELECT COALESCE(MAX(position), 0) + 1
 	FROM questions
 	WHERE quiz_id = $1;`
-	row = tx.QueryRow(queryMax, quizId)
+	row = tx.QueryRowContext(ctx, queryMax, quizId)
 	var position int
 	err = row.Scan(&position)
 	if err != nil {
@@ -106,7 +106,7 @@ func (r *PostgresRepository) DeleteQuestionAsAuthor(ctx context.Context, id int,
 	return tx.Commit()
 }
 
-func (r *PostgresRepository) ChangeQuestionPosition(ctx context.Context, id int, new_position int) error {
+func (r *PostgresRepository) ChangeQuestionPosition(ctx context.Context, id, new_position, authorId int) error {
 	question, err := r.GetQuestion(ctx, id)
 	if err != nil {
 		return err

@@ -45,8 +45,8 @@ func (s *Service) DeleteQuestionAsAuthor(ctx context.Context, id int, userId int
 	return s.repo.DeleteQuestionAsAuthor(ctx, id, userId)
 }
 
-func (s *Service) ChangeQuestionPosition(ctx context.Context, id, new_position int) error {
-	return s.repo.ChangeQuestionPosition(ctx, id, new_position)
+func (s *Service) ChangeQuestionPosition(ctx context.Context, id, new_position, authorId int) error {
+	return s.repo.ChangeQuestionPosition(ctx, id, new_position, authorId)
 }
 
 func (s *Service) GetQuestion(ctx context.Context, id int) (Question, error) {

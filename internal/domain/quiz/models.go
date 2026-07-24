@@ -25,10 +25,10 @@ func NewUser() *User {
 
 type Question struct {
 	Id          int
-	QuizId      int     `json:"quiz_id"`
-	Position    int     `json:"position"`
-	TextContent string  `json:"text_content"`
-	ImageId     *string `json:"image_id"`
+	QuizId      int    `json:"quiz_id"`
+	Position    int    `json:"position"`
+	TextContent string `json:"text_content"`
+	ImageId     string `json:"image_id"`
 	Answers     []Answer
 }
 

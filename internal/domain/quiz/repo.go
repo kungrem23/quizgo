@@ -15,7 +15,7 @@ type Repository interface {
 	// =========QUESTION=========
 	CreateNewQuestionAsAuthor(ctx context.Context, textContent string, quizId, authorId int) error
 	DeleteQuestionAsAuthor(ctx context.Context, id int, userId int) error
-	ChangeQuestionPosition(ctx context.Context, id int, new_position int) error
+	ChangeQuestionPosition(ctx context.Context, id int, new_position, authorId int) error
 	GetQuestion(ctx context.Context, id int) (Question, error)
 	GetAllQuestions(ctx context.Context) ([]Question, error)
 
