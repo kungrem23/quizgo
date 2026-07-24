@@ -79,7 +79,17 @@ func (r *PostgresRepository) GetUserByUsername(ctx context.Context, username str
 
 func (r *PostgresRepository) DeleteUser(ctx context.Context, id int) error {
 	query := "DELETE FROM users WHERE id = $1;"
-	_, err := r.db.ExecContext(ctx, query, id)
+	res, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return ErrNotFound
+	}
 	// if err != nil {
 	// 	// log.Printf("Deleting user error: %v\n", err)
 	// 	return err
