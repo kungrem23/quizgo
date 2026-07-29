@@ -6,7 +6,7 @@ type Quiz struct {
 	Id        int
 	Title     string `json:"title"`
 	AuthorId  int    `json:"author_id"`
-	Questions []Question
+	Questions []*Question
 }
 
 func NewQuiz() *Quiz {

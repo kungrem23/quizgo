@@ -16,13 +16,13 @@ import (
 // 	return &QuizRepo{db: db}
 // }
 
-func (r *PostgresRepository) CreateQuiz(ctx context.Context, quiz Quiz) error {
+func (r *PostgresRepository) CreateQuiz(ctx context.Context, title string, userId int) error {
 	query := `INSERT INTO quizzes 
 	(title, author_id)
 	VALUES ($1, $2)
 	RETURNING (id, title, author_id)`
 	// var q quiz.Quiz
-	_, err := r.db.ExecContext(ctx, query, quiz.Title, quiz.AuthorId)
+	_, err := r.db.ExecContext(ctx, query, title, userId)
 	// quiz := models.NewQuiz()
 	// err := row.Scan(&quiz.Id, &quiz.Title, &quiz.AuthorId)
 	return err
@@ -61,7 +61,7 @@ func (r *PostgresRepository) GetQuizAnswers(ctx context.Context, quizId int, que
 	return nil
 }
 
-func (r *PostgresRepository) GetQuizQuestions(ctx context.Context, quizId int) ([]Question, error) {
+func (r *PostgresRepository) GetQuizQuestions(ctx context.Context, quizId int) ([]*Question, error) {
 	query := `SELECT id, text_content, position, quiz_id, image_id 
 	FROM questions 
 	WHERE quiz_id=$1 
@@ -72,16 +72,16 @@ func (r *PostgresRepository) GetQuizQuestions(ctx context.Context, quizId int) (
 		return nil, err
 	}
 	defer rows.Close()
-	var questions []Question
+	questions := []*Question{}
 	questionMap := make(map[int]*Question)
 	for rows.Next() {
-		var qu Question
+		qu := &Question{}
 		err := rows.Scan(&qu.Id, &qu.TextContent, &qu.Position, &qu.QuizId, &qu.ImageId)
 		if err != nil {
 			return nil, err
 		}
 		questions = append(questions, qu)
-		questionMap[qu.Id] = &questions[len(questions)-1]
+		questionMap[qu.Id] = qu
 	}
 	err = r.GetQuizAnswers(ctx, quizId, questionMap)
 	if err != nil {
@@ -121,12 +121,19 @@ func (r *PostgresRepository) ListQuizzes(ctx context.Context) ([]Quiz, error) {
 		if err != nil {
 			return nil, err
 		}
-		questions, err := r.GetQuizQuestions(ctx, q.Id)
+		// questions, err := r.GetQuizQuestions(ctx, q.Id)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// q.Questions = questions
+		quizzes = append(quizzes, q)
+	}
+	for i := range quizzes {
+		questions, err := r.GetQuizQuestions(ctx, quizzes[i].Id)
 		if err != nil {
 			return nil, err
 		}
-		q.Questions = questions
-		quizzes = append(quizzes, q)
+		quizzes[i].Questions = questions
 	}
 	return quizzes, nil
 }
@@ -139,19 +146,40 @@ func (r *PostgresRepository) ListQuizzesByAuthor(ctx context.Context, authorID i
 		return nil, err
 	}
 	defer rows.Close()
+	// for rows.Next() {
+	// 	var q Quiz
+	// 	err := rows.Scan(&q.Id, &q.Title, &q.AuthorId)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	questions, err := r.GetQuizQuestions(ctx, q.Id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	q.Questions = questions
+	// 	quizzes = append(quizzes, q)
+	// }
 	for rows.Next() {
 		var q Quiz
 		err := rows.Scan(&q.Id, &q.Title, &q.AuthorId)
 		if err != nil {
 			return nil, err
 		}
-		questions, err := r.GetQuizQuestions(ctx, q.Id)
+		// questions, err := r.GetQuizQuestions(ctx, q.Id)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// q.Questions = questions
+		quizzes = append(quizzes, q)
+	}
+	for i := range quizzes {
+		questions, err := r.GetQuizQuestions(ctx, quizzes[i].Id)
 		if err != nil {
 			return nil, err
 		}
-		q.Questions = questions
-		quizzes = append(quizzes, q)
+		quizzes[i].Questions = questions
 	}
+
 	return quizzes, nil
 }
 

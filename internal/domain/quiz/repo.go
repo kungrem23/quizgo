@@ -10,7 +10,7 @@ type Repository interface {
 	GetQuiz(ctx context.Context, id int) (Quiz, error)
 	ListQuizzes(ctx context.Context) ([]Quiz, error)
 	ListQuizzesByAuthor(ctx context.Context, authorID int) ([]Quiz, error)
-	CreateQuiz(ctx context.Context, quiz Quiz) error
+	CreateQuiz(ctx context.Context, title string, authorId int) error
 
 	// =========QUESTION=========
 	CreateNewQuestionAsAuthor(ctx context.Context, textContent string, quizId, authorId int) error

@@ -23,8 +23,8 @@ func (s *Service) GetQuiz(ctx context.Context, id int) (Quiz, error) {
 	return s.repo.GetQuiz(ctx, id)
 }
 
-func (s *Service) CreateQuiz(ctx context.Context, quiz Quiz) error {
-	return s.repo.CreateQuiz(ctx, quiz)
+func (s *Service) CreateQuiz(ctx context.Context, title string, authorId int) error {
+	return s.repo.CreateQuiz(ctx, title, authorId)
 }
 
 func (s *Service) ListQuizzes(ctx context.Context) ([]Quiz, error) {
