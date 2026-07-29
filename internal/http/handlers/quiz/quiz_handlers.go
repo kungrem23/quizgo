@@ -81,7 +81,7 @@ func (h *QuizHandler) CreateQuiz(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	err = h.service.CreateQuiz(r.Context(), quiz.Quiz{AuthorId: authorId, Title: req.Title})
+	err = h.service.CreateQuiz(r.Context(), req.Title, authorId)
 	if err != nil {
 		respond.WriteJSON(w, http.StatusInternalServerError, respond.ErrorResponse{
 			Error: "server error",
