@@ -42,7 +42,7 @@ func TestServiceLogin_Success(t *testing.T) {
 		getUserByUsernameFunc: func(_ context.Context,
 			gotUsername string) (User, error) {
 			if gotUsername != username {
-				t.Errorf("ServieLogin error got username: %v | expect %v", gotUsername, username)
+				t.Errorf("ServiceLogin error got username: %v | expect %v", gotUsername, username)
 			}
 			return User{
 				Id:           7,
@@ -75,7 +75,7 @@ func TestServiceLogin_NotFound(t *testing.T) {
 		getUserByUsernameFunc: func(_ context.Context,
 			gotUsername string) (User, error) {
 			if gotUsername != username {
-				t.Errorf("ServieLogin error got username: %v | expect %v", gotUsername, username)
+				t.Errorf("ServiceLogin error got username: %v | expect %v", gotUsername, username)
 			}
 			return User{}, sql.ErrNoRows
 		},
@@ -101,7 +101,7 @@ func TestServiceLogin_Forbidden(t *testing.T) {
 		getUserByUsernameFunc: func(_ context.Context,
 			gotUsername string) (User, error) {
 			if gotUsername != username {
-				t.Errorf("ServieLogin error got username: %v | expect %v", gotUsername, username)
+				t.Errorf("ServiceLogin error got username: %v | expect %v", gotUsername, username)
 			}
 			return User{
 				Id:           7,
@@ -132,7 +132,7 @@ func TestServiceRegister_Success(t *testing.T) {
 		getUserByUsernameFunc: func(ctx context.Context,
 			gotUsername string) (User, error) {
 			if gotUsername != username {
-				t.Errorf("ServieLogin error got username: %v | expect %v", gotUsername, username)
+				t.Errorf("ServiceRegister error got username: %v | expect %v", gotUsername, username)
 			}
 			return User{}, sql.ErrNoRows
 		},
@@ -168,7 +168,7 @@ func TestServiceRegister_UsernameTaken(t *testing.T) {
 		getUserByUsernameFunc: func(ctx context.Context,
 			gotUsername string) (User, error) {
 			if gotUsername != username {
-				t.Errorf("ServieLogin error got username: %v | expect %v", gotUsername, username)
+				t.Errorf("ServiceRegister error got username: %v | expect %v", gotUsername, username)
 			}
 			return User{
 				Id:           7,
@@ -197,7 +197,7 @@ func TestServiceRegister_GetUserError(t *testing.T) {
 		getUserByUsernameFunc: func(ctx context.Context,
 			gotUsername string) (User, error) {
 			if gotUsername != username {
-				t.Errorf("ServieLogin error got username: %v | expect %v", gotUsername, username)
+				t.Errorf("ServiceRegister error got username: %v | expect %v", gotUsername, username)
 			}
 			return User{}, ErrCustom
 		},
@@ -222,7 +222,7 @@ func TestServiceRegister_CreateUserError(t *testing.T) {
 		getUserByUsernameFunc: func(ctx context.Context,
 			gotUsername string) (User, error) {
 			if gotUsername != username {
-				t.Errorf("ServieLogin error got username: %v | expect %v", gotUsername, username)
+				t.Errorf("ServiceRegister error got username: %v | expect %v", gotUsername, username)
 			}
 			return User{}, sql.ErrNoRows
 		},
